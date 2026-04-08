@@ -25,17 +25,17 @@ LAB SETUP INSTRUCTIONS
   If your system blocks running npm commands (especially on Windows PowerShell),
    run this command first to allow script execution:
       Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-  
+
  * ============================================
  * TODO-1 (Server Setup):
  * ============================================
  *   - create Express app instance
  *   - start server on port 3000
  *   - show console.log("API running at http://localhost:3000")
- *   HINT: 
+ *   HINT:
  *     const app = express();
  *     app.listen(3000, ()=> console.log(...));
- * 
+ *
  *============================================
  * TODO-2 (/echo route):
  * ============================================
@@ -80,10 +80,10 @@ LAB SETUP INSTRUCTIONS
  *============================================
  *
  * # After running server:
- * 
+ *
  * curl "http://localhost:3000"
  *   → just see server up
- * 
+ *
  * curl "http://localhost:3000/echo?name=Ali&age=22"
  *   → 200 { ok:true, name:"Ali", age:"22", msg:"Hello Ali, you are 22" }
  *
@@ -103,26 +103,68 @@ LAB SETUP INSTRUCTIONS
  *   → 400 { ok:false, error:"userId must be positive number" }
  *
  */
+import express from "express";
 
-//import express
+const app = express();
 
-
-// create express app instance to create web server
-
-
+app.get("/", (req, res) => {
+ res.json({ ok: true, msg: "server up" });
+});
 
 // Query params: /echo?name=Ali&age=22
+app.get("/echo", (req, res) => {
+ const { name, age } = req.query;
 
+ if (!name || !age) {
+  return res.status(400).json({
+   ok: false,
+   error: "name & age required",
+  });
+ }
+
+ return res.json({
+  ok: true,
+  name,
+  age,
+  msg: `Hello ${name}, you are ${age}`,
+ });
+});
 
 // Route params: /profile/First/Last
+app.get("/profile/:first/:last", (req, res) => {
+ const { first, last } = req.params;
 
+ return res.json({
+  ok: true,
+  fullName: `${first} ${last}`,
+ });
+});
 
 // Route param middleware example: /users/42
+app.param("userId", (req, res, next, userId) => {
+ const userIdNum = Number(userId);
 
+ if (!Number.isFinite(userIdNum) || userIdNum <= 0) {
+  return res.status(400).json({
+   ok: false,
+   error: "userId must be positive number",
+  });
+ }
+
+ req.userIdNum = userIdNum;
+ next();
+});
 
 // Route params: /users/:userId route
-
+app.get("/users/:userId", (req, res) => {
+ return res.json({
+  ok: true,
+  userId: req.userIdNum,
+ });
+});
 
 // Start the server by listening
-
+app.listen(3000, () => {
+ console.log("API running at http://localhost:3000");
+});
 
